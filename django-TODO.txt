@@ -1,6 +1,28 @@
-login_required_csrf_exempt_path(...)
-login_required_path(...)
-csrf_exempt_path(...)
+login_required_path
+csrf_exempt_path
+login_required_csrf_exempt_path
+
+has_permission_path
+has_permission_login_required_path
+has_permission_csrf_exempt_path
+has_permission_login_required_csrf_exempt_path
+
+has_group_path
+has_group_login_required_path
+has_group_csrf_exempt_path
+has_group_login_required_csrf_exempt_path
+
 (..._)group_path(prefix_route='', ...)
 group_path(prefix_route='', ...)
 group_path(prefix_route='', decorator_functions=[...], ...)
+login_required_group_path
+csrf_execmpt_group_path
+login_required_csrf_exempt_group_path
+has_permission_group_path
+has_permission_login_required_group_path
+has_permission_csrf_exempt_group_path
+has_permission_login_required_csrf_exempt_group_path
+has_group_group_path
+has_group_login_required_group_path
+has_group_csrf_exempt_group_path
+has_group_login_required_csrf_exempt_group_path
