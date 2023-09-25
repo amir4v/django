@@ -143,7 +143,9 @@ def controll_path(route, view, name=None,
 def group_path(urlpatterns, prefix_route='', paths=[], name='',
                is_login_required=False, is_csrf_exempt=False,
                permission=None, group=None):
-    def make(path, prefix_route='', name=''):
+    def make(path, prefix_route='', name='',
+             effect_on_root_too=True, accesses=(None, None, None, None)
+             ):
         name = f"{name}:{path.name}" if name else path.name
         
         route = str(
@@ -161,27 +163,58 @@ def group_path(urlpatterns, prefix_route='', paths=[], name='',
         path.name = name
         path.pattern._route = route
         
-        # login_required
-        if is_login_required:
-            path.callback = login_required(path.callback)
-        # csrf_exempt
-        if is_csrf_exempt:
-            path.callback = csrf_exempt(path.callback)
-        # permission
-        if permission:
-            path.callback = permission_required(permission)(path.callback)
-        # group
-        if group:
-            path.callback = user_passes_group_test(is_member,
+        if effect_on_root_too and any(accesses):
+            login, csrf, perm, grp = accesses
+            # login_required
+            if login != None:
+                path.callback = login_required(path.callback)
+            # csrf_exempt
+            if csrf != None:
+                path.callback = csrf_exempt(path.callback)
+            # permission
+            if perm != None:
+                path.callback = permission_required(permission)(path.callback)
+            # group
+            if grp != None:
+                path.callback = user_passes_group_test(is_member,
+                                                   group=group)(path.callback)
+        else:
+            # login_required
+            if is_login_required:
+                path.callback = login_required(path.callback)
+            # csrf_exempt
+            if is_csrf_exempt:
+                path.callback = csrf_exempt(path.callback)
+            # permission
+            if permission:
+                path.callback = permission_required(permission)(path.callback)
+            # group
+            if group:
+                path.callback = user_passes_group_test(is_member,
                                                    group=group)(path.callback)
         
         return path
     
     for path in paths:
         inner_paths = path.default_args.get('paths', [])
+        root_effect = path.default_args.get('root_effect', True)
+        
+        inner_is_login_required = path.default_args.get('is_login_required', None)
+        inner_is_csrf_exempt = path.default_args.get('is_csrf_exempt', None)
+        inner_permission = path.default_args.get('permission', None)
+        inner_group = path.default_args.get('group', None)
+        
         if type(path) == URLPattern:
             urlpatterns.append(
-                make(path, prefix_route, name)
+                make(path, prefix_route, name,
+                effect_on_root_too=root_effect,
+                accesses=(
+                        inner_is_login_required,
+                        inner_is_csrf_exempt,
+                        inner_permission,
+                        inner_group
+                    )
+                )
             )
         if inner_paths != []:
             """
@@ -198,10 +231,6 @@ def group_path(urlpatterns, prefix_route='', paths=[], name='',
             it's been changed in the make function.
             """
             
-            inner_is_login_required = path.default_args.get('is_login_required', None)
-            inner_is_csrf_exempt = path.default_args.get('is_csrf_exempt', None)
-            inner_permission = path.default_args.get('permission', None)
-            inner_group = path.default_args.get('group', None)
             # login_required
             if inner_is_login_required != None:
                 is_login_required = inner_is_login_required
@@ -234,11 +263,12 @@ group_path(urlpatterns, 'group/', [
     path('', views.group_index, name='index'),
     path('other/', views.other, name='other', kwargs={'paths': [
         path('inner/', views.inner, name='inner')
-    ], # TODO: (Accesses) On the path too or just its children? -> with True/False -> Like: {... 'on_root': True/False ...}
+    ],
     'is_login_required': None,
     'is_csrf_exempt': None,
     'permission': None,
-    'group': None
+    'group': None,
+    'root_effect': True # Default
     }),
 ], name='group', is_login_required=True, is_csrf_exempt=True, group='group-name-in-database-related-to-user')
 
