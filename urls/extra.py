@@ -1,3 +1,9 @@
+"""
+TODO:
+  - get/post/... path, maybe option.
+  - rate-limit(throttle) option.
+"""
+
 from functools import wraps
 from urllib.parse import urlparse
 
@@ -228,7 +234,7 @@ group_path(urlpatterns, 'group/', [
     path('', views.group_index, name='index'),
     path('other/', views.other, name='other', kwargs={'paths': [
         path('inner/', views.inner, name='inner')
-    ], # TODO : (Accesses) On the path too or just its children? -> with True/False -> Like: {... 'on_root': True/False ...}
+    ], # TODO: (Accesses) On the path too or just its children? -> with True/False -> Like: {... 'on_root': True/False ...}
     'is_login_required': None,
     'is_csrf_exempt': None,
     'permission': None,
